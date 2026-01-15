@@ -10,6 +10,7 @@
 ```
 
 ![trae_snake](image/trae_snake.png)
+![trae_snake_2](image/trae_snake_2.png)
 
 ### 五子棋
 

@@ -1,12 +1,16 @@
 import './ControlPanel.css'
 
-function ControlPanel({ onDirectionChange, onStart, gameStatus }) {
+function ControlPanel({ onDirectionChange, onStart, gameStatus, isPaused, onPause }) {
   const handleDirection = (direction) => {
     onDirectionChange(direction)
   }
 
   const handleStart = () => {
     onStart()
+  }
+
+  const handlePause = () => {
+    onPause()
   }
 
   return (
@@ -46,12 +50,20 @@ function ControlPanel({ onDirectionChange, onStart, gameStatus }) {
       </div>
 
       <div className="action-buttons">
+        {gameStatus === 'playing' && (
+          <button
+            className="action-button pause"
+            onClick={handlePause}
+          >
+            <span className="button-text">{isPaused ? '继续' : '暂停'}</span>
+          </button>
+        )}
         <button
           className="action-button start"
           onClick={handleStart}
-          disabled={gameStatus === 'playing'}
+          disabled={gameStatus === 'playing' && !isPaused}
         >
-          <span className="button-text">{gameStatus === 'playing' ? '游戏中' : '开始'}</span>
+          <span className="button-text">{gameStatus === 'playing' && !isPaused ? '游戏中' : '开始'}</span>
         </button>
       </div>
     </div>

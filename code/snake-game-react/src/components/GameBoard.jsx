@@ -1,6 +1,6 @@
 import './GameBoard.css'
 
-function GameBoard({ snake, food, gridSize, gameStatus, isPaused, onResume }) {
+function GameBoard({ snake, food, gridSize, gameStatus }) {
   const renderCell = (x, y) => {
     const snakeSegment = snake.find(segment => segment.x === x && segment.y === y)
     const isFood = food && food.x === x && food.y === y
@@ -58,14 +58,6 @@ function GameBoard({ snake, food, gridSize, gameStatus, isPaused, onResume }) {
       {gameStatus === 'gameover' && (
         <div className="game-overlay">
           <div className="game-over">游戏结束</div>
-        </div>
-      )}
-
-      {isPaused && (
-        <div className="game-overlay pause-overlay" onClick={onResume}>
-          <div className="pause-icon">⏸️</div>
-          <div className="pause-text">游戏暂停</div>
-          <div className="pause-hint">点击屏幕或按 P 键继续</div>
         </div>
       )}
 

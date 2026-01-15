@@ -250,14 +250,14 @@ function App() {
               speed={speed}
               doublePointsActive={doublePointsActive}
               lastEffect={lastEffect}
+              isPaused={isPaused}
+              onResume={togglePause}
             />
             <GameBoard
               snake={snake}
               food={food}
               gridSize={GRID_SIZE}
               gameStatus={gameStatus}
-              isPaused={isPaused}
-              onResume={togglePause}
             />
           </div>
         </div>
@@ -265,6 +265,8 @@ function App() {
           onDirectionChange={handleDirectionChange}
           onStart={resetGame}
           gameStatus={gameStatus}
+          isPaused={isPaused}
+          onPause={togglePause}
         />
       </div>
     </div>

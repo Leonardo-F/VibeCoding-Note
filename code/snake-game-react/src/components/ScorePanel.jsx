@@ -1,6 +1,6 @@
 import './ScorePanel.css'
 
-function ScorePanel({ score, highScore, speed, baseSpeed, doublePointsActive, lastEffect }) {
+function ScorePanel({ score, highScore, speed, baseSpeed, doublePointsActive, lastEffect, isPaused, onResume }) {
   const speedPercentage = Math.round((300 - speed) / 250 * 100)
   const isSpeedUp = speed < baseSpeed
   const isSpeedDown = speed > baseSpeed
@@ -30,6 +30,12 @@ function ScorePanel({ score, highScore, speed, baseSpeed, doublePointsActive, la
         </div>
       </div>
 
+      {isPaused && (
+        <div className="effect-badge paused" onClick={onResume} title="点击继续游戏">
+          ⏸️ 已暂停 - 点击继续
+        </div>
+      )}
+
       {isSpeedUp && (
         <div className="effect-badge speed-up">
           加速中 (5秒)
@@ -48,7 +54,7 @@ function ScorePanel({ score, highScore, speed, baseSpeed, doublePointsActive, la
         </div>
       )}
 
-      {lastEffect && (
+      {lastEffect && !isPaused && (
         <div className="effect-message">
           {lastEffect}
         </div>
