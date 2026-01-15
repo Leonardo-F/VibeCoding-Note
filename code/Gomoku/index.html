@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>掌机五子棋</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #fff0f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+
+        .game-boy {
+            background: #c0c0c0;
+            border-radius: 20px 20px 60px 20px;
+            padding: 30px;
+            box-shadow: 
+                0 0 0 4px #888,
+                0 0 0 8px #666,
+                0 10px 30px rgba(0,0,0,0.5),
+                inset 0 2px 5px rgba(255,255,255,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .screen-border {
+            background: #5a5a5a;
+            border-radius: 15px 15px 40px 15px;
+            padding: 20px;
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.5);
+        }
+
+        .screen {
+            background: #9bbc0f;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 
+                inset 0 3px 8px rgba(0,0,0,0.3),
+                0 0 20px rgba(155,188,15,0.3);
+        }
+
+        .screen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #0f380f;
+            font-weight: bold;
+        }
+
+        .battery {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .battery-icon {
+            width: 20px;
+            height: 10px;
+            border: 2px solid #0f380f;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 6px;
+            background: #0f380f;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .battery-level {
+            width: 14px;
+            height: 6px;
+            background: #0f380f;
+            border-radius: 1px;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 1px;
+            background: #0f380f;
+            padding: 2px;
+            border: 2px solid #0f380f;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: #9bbc0f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.1s;
+            position: relative;
+        }
+
+        .cell:hover {
+            background: #8bac0f;
+        }
+
+        .cell.disabled {
+            cursor: not-allowed;
+        }
+
+        .cell.disabled:hover {
+            background: #9bbc0f;
+        }
+
+        .piece {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 
+                2px 2px 4px rgba(0,0,0,0.3),
+                inset -2px -2px 4px rgba(0,0,0,0.2),
+                inset 2px 2px 4px rgba(255,255,255,0.2);
+        }
+
+        .piece.black {
+            background: linear-gradient(145deg, #333, #111);
+        }
+
+        .piece.white {
+            background: linear-gradient(145deg, #fff, #ddd);
+        }
+
+        .last-move {
+            position: absolute;
+            width: 30%;
+            height: 30%;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        .last-move.black {
+            background: #333;
+        }
+
+        .last-move.white {
+            background: #fff;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 0 10px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #0f380f;
+            font-weight: bold;
+        }
+
+        .player-piece {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .player-piece.black {
+            background: linear-gradient(145deg, #333, #111);
+        }
+
+        .player-piece.white {
+            background: linear-gradient(145deg, #fff, #ddd);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            background: #8b0000;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            box-shadow: 
+                0 4px 0 #5a0000,
+                0 6px 10px rgba(0,0,0,0.3);
+            transition: all 0.1s;
+            font-size: 10px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0 2px 0 #5a0000,
+                0 3px 5px rgba(0,0,0,0.3);
+        }
+
+        .btn-a {
+            background: #8b0000;
+        }
+
+        .btn-b {
+            background: #8b0000;
+        }
+
+        .btn-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #0f380f;
+        }
+
+        .button-wrapper {
+            position: relative;
+        }
+
+        .direction-pad {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 30px);
+            grid-template-rows: repeat(3, 30px);
+            gap: 2px;
+        }
+
+        .dpad-btn {
+            background: #333;
+            border: none;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .dpad-btn:active {
+            background: #222;
+        }
+
+        .dpad-center {
+            background: transparent;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            color: #0f380f;
+            font-weight: bold;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-over-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .game-over-box {
+            background: #9bbc0f;
+            border: 4px solid #0f380f;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(155,188,15,0.5);
+        }
+
+        .game-over-title {
+            font-size: 24px;
+            color: #0f380f;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .game-over-btn {
+            background: #8b0000;
+            color: #fff;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 4px 0 #5a0000;
+        }
+
+        .game-over-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #5a0000;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .select-mode {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .mode-btn {
+            background: #0f380f;
+            color: #9bbc0f;
+            border: 3px solid #0f380f;
+            padding: 15px 40px;
+            font-size: 16px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            background: #8bac0f;
+            color: #0f380f;
+        }
+
+        .mode-title {
+            font-size: 20px;
+            color: #0f380f;
+            margin-bottom: 10px;
+        }
+
+        @keyframes winBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .win-cell {
+            animation: winBlink 0.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-boy">
+        <div class="screen-border">
+            <div class="screen">
+                <div class="screen-header">
+                    <span>GOMOKU</span>
+                    <div class="battery">
+                        <span>L</span>
+                        <div class="battery-icon">
+                            <div class="battery-level"></div>
+                        </div>
+                        <span>R</span>
+                    </div>
+                </div>
+
+                <div id="mode-select" class="select-mode">
+                    <h2 class="mode-title">五子棋</h2>
+                    <button class="mode-btn" onclick="startGame('pvp')">双人对战</button>
+                    <button class="mode-btn" onclick="startGame('pve')">人机对战</button>
+                </div>
+
+                <div id="game-container" class="hidden">
+                    <div id="status-message" class="status-message">黑方先行</div>
+                    <div id="game-board" class="game-board"></div>
+                    
+                    <div class="controls">
+                        <div class="player-info">
+                            <div class="player-piece" id="current-player-piece"></div>
+                            <span id="current-player-text">黑方</span>
+                        </div>
+                        <div class="buttons">
+                            <div class="button-wrapper">
+                                <button class="btn btn-a" onclick="undoMove()">B</button>
+                            </div>
+                            <div class="button-wrapper">
+                                <button class="btn btn-b" onclick="resetGame()">A</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="direction-pad">
+                        <div class="dpad">
+                            <div class="dpad-btn"></div>
+                            <div class="dpad-btn" onclick="undoMove()">↑</div>
+                            <div class="dpad-btn"></div>
+                            <div class="dpad-btn" onclick="undoMove()">←</div>
+                            <div class="dpad-center"></div>
+                            <div class="dpad-btn" onclick="resetGame()">→</div>
+                            <div class="dpad-btn"></div>
+                            <div class="dpad-btn" onclick="resetGame()">↓</div>
+                            <div class="dpad-btn"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-over-modal" class="game-over-overlay hidden">
+        <div class="game-over-box">
+            <div id="game-over-title" class="game-over-title"></div>
+            <button class="game-over-btn" onclick="closeModalAndReset()">再来一局</button>
+        </div>
+    </div>
+
+    <script>
+        const BOARD_SIZE = 15;
+        let board = [];
+        let currentPlayer = 1;
+        let gameMode = 'pvp';
+        let gameOver = false;
+        let moveHistory = [];
+        let aiThinking = false;
+
+        function initBoard() {
+            board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
+        }
+
+        function createBoard() {
+            const gameBoard = document.getElementById('game-board');
+            gameBoard.innerHTML = '';
+            
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell disabled';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.onclick = () => handleCellClick(i, j);
+                    gameBoard.appendChild(cell);
+                }
+            }
+        }
+
+        function updateBoard() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                
+                const piece = cell.querySelector('.piece');
+                const lastMove = cell.querySelector('.last-move');
+                const winCell = cell.querySelector('.win-cell');
+                
+                if (piece) piece.remove();
+                if (lastMove) lastMove.remove();
+                if (winCell) winCell.remove();
+                
+                if (board[row][col] !== 0) {
+                    const pieceEl = document.createElement('div');
+                    pieceEl.className = `piece ${board[row][col] === 1 ? 'black' : 'white'}`;
+                    cell.appendChild(pieceEl);
+                    cell.classList.remove('disabled');
+                }
+            });
+
+            if (moveHistory.length > 0) {
+                const lastMove = moveHistory[moveHistory.length - 1];
+                const lastCell = document.querySelector(`.cell[data-row="${lastMove.row}"][data-col="${lastMove.col}"]`);
+                if (lastCell) {
+                    const indicator = document.createElement('div');
+                    indicator.className = `last-move ${lastMove.player === 1 ? 'black' : 'white'}`;
+                    lastCell.appendChild(indicator);
+                }
+            }
+        }
+
+        function highlightWinningCells(cells) {
+            cells.forEach(([row, col]) => {
+                const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                if (cell) {
+                    const indicator = document.createElement('div');
+                    indicator.className = 'win-cell';
+                    cell.appendChild(indicator);
+                }
+            });
+        }
+
+        function handleCellClick(row, col) {
+            if (gameOver || aiThinking) return;
+            if (board[row][col] !== 0) return;
+            
+            makeMove(row, col);
+            
+            if (gameMode === 'pve' && !gameOver) {
+                aiThinking = true;
+                setTimeout(aiMove, 500);
+            }
+        }
+
+        function makeMove(row, col) {
+            board[row][col] = currentPlayer;
+            moveHistory.push({ row, col, player: currentPlayer });
+            
+            updateBoard();
+            
+            const winningCells = checkWin(row, col);
+            if (winningCells) {
+                gameOver = true;
+                highlightWinningCells(winningCells);
+                showGameOver(currentPlayer);
+                return;
+            }
+            
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateStatus();
+        }
+
+        function checkWin(row, col) {
+            const player = board[row][col];
+            const directions = [
+                [0, 1], [1, 0], [1, 1], [1, -1]
+            ];
+            
+            for (const [dx, dy] of directions) {
+                let count = 1;
+                let cells = [[row, col]];
+                
+                for (let dir = 1; dir < 5; dir++) {
+                    const newRow = row + dx * dir;
+                    const newCol = col + dy * dir;
+                    if (isValidPos(newRow, newCol) && board[newRow][newCol] === player) {
+                        count++;
+                        cells.push([newRow, newCol]);
+                    } else break;
+                }
+                
+                for (let dir = 1; dir < 5; dir++) {
+                    const newRow = row - dx * dir;
+                    const newCol = col - dy * dir;
+                    if (isValidPos(newRow, newCol) && board[newRow][newCol] === player) {
+                        count++;
+                        cells.push([newRow, newCol]);
+                    } else break;
+                }
+                
+                if (count >= 5) {
+                    return cells;
+                }
+            }
+            return null;
+        }
+
+        function isValidPos(row, col) {
+            return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
+        }
+
+        function aiMove() {
+            if (gameOver) {
+                aiThinking = false;
+                return;
+            }
+
+            const bestMove = findBestMove();
+            if (bestMove) {
+                makeMove(bestMove.row, bestMove.col);
+            }
+            
+            aiThinking = false;
+        }
+
+        function findBestMove() {
+            let bestScore = -Infinity;
+            let bestMove = null;
+            
+            const emptyCells = [];
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        emptyCells.push({ row: i, col: j });
+                    }
+                }
+            }
+            
+            if (emptyCells.length === 0) return null;
+            
+            emptyCells.sort(() => Math.random() - 0.5);
+            
+            const limitedCells = emptyCells.slice(0, Math.min(50, emptyCells.length));
+            
+            for (const cell of limitedCells) {
+                const score = evaluatePosition(cell.row, cell.col);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = cell;
+                }
+            }
+            
+            return bestMove || emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        }
+
+        function evaluatePosition(row, col) {
+            let score = 0;
+            const player = 2;
+            const opponent = 1;
+            const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+            
+            for (const [dx, dy] of directions) {
+                let playerCount = 1;
+                let playerOpen = 0;
+                let playerBlocked = 0;
+                
+                for (let dir = 1; dir < 5; dir++) {
+                    const newRow = row + dx * dir;
+                    const newCol = col + dy * dir;
+                    if (isValidPos(newRow, newCol) && board[newRow][newCol] === player) {
+                        playerCount++;
+                    } else if (isValidPos(newRow, newCol) && board[newRow][newCol] === 0) {
+                        playerOpen++;
+                        break;
+                    } else {
+                        playerBlocked++;
+                        break;
+                    }
+                }
+                
+                for (let dir = 1; dir < 5; dir++) {
+                    const newRow = row - dx * dir;
+                    const newCol = col - dy * dir;
+                    if (isValidPos(newRow, newCol) && board[newRow][newCol] === player) {
+                        playerCount++;
+                    } else if (isValidPos(newRow, newCol) && board[newRow][newCol] === 0) {
+                        playerOpen++;
+                        break;
+                    } else {
+                        playerBlocked++;
+                        break;
+                    }
+                }
+                
+                if (playerCount >= 5) {
+                    score += 100000;
+                } else if (playerCount === 4 && playerOpen === 2) {
+                    score += 10000;
+                } else if (playerCount === 4 && playerOpen === 1) {
+                    score += 1000;
+                } else if (playerCount === 3 && playerOpen === 2) {
+                    score += 500;
+                } else if (playerCount === 3 && playerOpen === 1) {
+                    score += 100;
+                } else if (playerCount === 2 && playerOpen === 2) {
+                    score += 50;
+                }
+                
+                let opponentCount = 1;
+                let opponentOpen = 0;
+                let opponentBlocked = 0;
+                
+                for (let dir = 1; dir < 5; dir++) {
+                    const newRow = row + dx * dir;
+                    const newCol = col + dy * dir;
+                    if (isValidPos(newRow, newCol) && board[newRow][newCol] === opponent) {
+                        opponentCount++;
+                    } else if (isValidPos(newRow, newCol) && board[newRow][newCol] === 0) {
+                        opponentOpen++;
+                        break;
+                    } else {
+                        opponentBlocked++;
+                        break;
+                    }
+                }
+                
+                for (let dir = 1; dir < 5; dir++) {
+                    const newRow = row - dx * dir;
+                    const newCol = col - dy * dir;
+                    if (isValidPos(newRow, newCol) && board[newRow][newCol] === opponent) {
+                        opponentCount++;
+                    } else if (isValidPos(newRow, newCol) && board[newRow][newCol] === 0) {
+                        opponentOpen++;
+                        break;
+                    } else {
+                        opponentBlocked++;
+                        break;
+                    }
+                }
+                
+                if (opponentCount >= 5) {
+                    score += 50000;
+                } else if (opponentCount === 4 && opponentOpen === 2) {
+                    score += 5000;
+                } else if (opponentCount === 4 && opponentOpen === 1) {
+                    score += 500;
+                } else if (opponentCount === 3 && opponentOpen === 2) {
+                    score += 250;
+                } else if (opponentCount === 3 && opponentOpen === 1) {
+                    score += 50;
+                }
+            }
+            
+            score += Math.random() * 10;
+            
+            return score;
+        }
+
+        function undoMove() {
+            if (moveHistory.length === 0 || gameOver) return;
+            
+            const lastMove = moveHistory.pop();
+            board[lastMove.row][lastMove.col] = 0;
+            
+            if (gameMode === 'pve' && moveHistory.length > 0) {
+                const aiMove = moveHistory.pop();
+                board[aiMove.row][aiMove.col] = 0;
+            }
+            
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateStatus();
+            updateBoard();
+        }
+
+        function updateStatus() {
+            const statusEl = document.getElementById('status-message');
+            const playerText = document.getElementById('current-player-text');
+            const playerPiece = document.getElementById('current-player-piece');
+            
+            playerText.textContent = currentPlayer === 1 ? '黑方' : '白方';
+            playerPiece.className = `player-piece ${currentPlayer === 1 ? 'black' : 'white'}`;
+            
+            if (gameMode === 'pve') {
+                statusEl.textContent = currentPlayer === 1 ? '轮到你了' : 'AI思考中...';
+            } else {
+                statusEl.textContent = currentPlayer === 1 ? '黑方下棋' : '白方下棋';
+            }
+        }
+
+        function showGameOver(winner) {
+            const modal = document.getElementById('game-over-modal');
+            const title = document.getElementById('game-over-title');
+            
+            let winnerText = '';
+            if (gameMode === 'pve') {
+                winnerText = winner === 1 ? '你赢了！🎉' : 'AI赢了！🤖';
+            } else {
+                winnerText = winner === 1 ? '黑方获胜！🏆' : '白方获胜！🏆';
+            }
+            
+            title.textContent = winnerText;
+            modal.classList.remove('hidden');
+        }
+
+        function closeModalAndReset() {
+            document.getElementById('game-over-modal').classList.add('hidden');
+            resetGame();
+        }
+
+        function resetGame() {
+            initBoard();
+            moveHistory = [];
+            currentPlayer = 1;
+            gameOver = false;
+            createBoard();
+            updateStatus();
+        }
+
+        function startGame(mode) {
+            gameMode = mode;
+            document.getElementById('mode-select').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+            resetGame();
+        }
+
+        initBoard();
+        createBoard();
+        updateStatus();
+    </script>
+</body>
+</html>
